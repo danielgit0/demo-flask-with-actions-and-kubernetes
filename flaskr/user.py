@@ -1,13 +1,11 @@
-import json
-from flask import Flask, jsonify
+from flask import (
+    Blueprint, jsonify
+)
 
-app = Flask(__name__)
+bp = Blueprint('user', __name__)
 
 
-@app.route('/')
+@bp.route('/')
 def index():
     return jsonify({'name': 'alice',
                     'email': 'alice@outlook.com'})
-
-
-app.run()
