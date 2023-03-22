@@ -6,6 +6,9 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'flask',
+        'Flask==2.2.3',
+        'pytest==7.2.2',
+        'Werkzeug==2.2.3',
+        'setuptools==67.6.0'
     ],
 )
