@@ -11,7 +11,11 @@ Demo on how to use GitHub actions to deploy a python API with Flask.
 ## Flask API
 
 No views were created as the intention is to just create the backend. 
-The API was created using flask, following the official documentation, the specific sections that were used can be found in the references section. It is not a fullThe specific parts can be found in the reference.
+The API was created using flask, following the official documentation, the specific sections that were used and adapted are the following:
+* [Project structure](https://flask.palletsprojects.com/en/2.2.x/tutorial/layout/)
+* [Testing documentation](https://flask.palletsprojects.com/en/2.2.x/testing/)
+* [Install the project](https://flask.palletsprojects.com/en/2.2.x/tutorial/install/)
+* [Test Coverage - blog](https://flask.palletsprojects.com/en/2.2.x/tutorial/tests/#blog)
 
 ### How to start the app?
 
@@ -62,14 +66,22 @@ The tutorial from the official documentation uses it and according to [this](htt
 
 ## Containerize the application
 
+### Prerequisites
 
+* Docker Desktop
 
-# References
+### Dockerfile
 
-[Official Flask - Project structure](https://flask.palletsprojects.com/en/2.2.x/tutorial/layout/)
+The `Dockerfile` contents were created using the following:
 
-[Official Flask - Testing documentation](https://flask.palletsprojects.com/en/2.2.x/testing/)
+1. An official Python image: [python:3.7.3-alpine3.10](https://hub.docker.com/_/python/tags?page=1&name=3.7.3). The Python version, `3.7.3`, was selected based on the locally installed Python version.
+2. For security reasons, which can be improved, a user was added to the Dockerfile following [baeldung](https://www.baeldung.com/linux/docker-alpine-add-user).
+3. The `wsgi.py` which is key for the deployment was created following: [Official Flask - Deploy with uwsgi](https://flask.palletsprojects.com/en/2.2.x/deploying/uwsgi/).
+4. With points 2 and 3 it is possible to use the command (`CMD`) used to start the application when the container is run.
 
-[Official Flask - Install the project](https://flask.palletsprojects.com/en/2.2.x/tutorial/install/)
+Make sure that Docker Desktop is started to build and run the docker image with the following commands:
 
-[Official Flask - Test Coverage - blog](https://flask.palletsprojects.com/en/2.2.x/tutorial/tests/#blog)
+```commandline
+docker build -t flask-demo-app:1.0 .
+docker run -d -p 5000:5000 flask-demo-app:1.0
+```
