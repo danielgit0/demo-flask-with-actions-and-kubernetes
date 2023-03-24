@@ -77,7 +77,7 @@ venv/bin/flask --app flaskr run
    1. The run configurations are included in the repository.
    2. **WARNING**: Do not modify the run configurations.
 
-#### What about other IDEs
+#### What about other IDEs?
 
 Make sure to create the virtual env and install the dependencies of the project.
 
@@ -120,6 +120,8 @@ docker run -d -p 5000:5000 flask-demo-app:1.0
 
 ## GitHub actions
 
+This section will describe how to create and configure a GitHub Workflow to automate: tests execution, create a docker image and deploy to a Kubernetes Cluster.
+
 ### self-hosted runner
 
 A [self-hosted runner](https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners) is a system that you deploy and manage to execute jobs from GitHub Actions on GitHub.com.
@@ -149,9 +151,9 @@ Could happen when you run the command `./config.sh --url...` to start configurin
 RUNNER_ALLOW_RUNASROOT="1" ./config.sh --url...
 ```
 
-### Actions yml file
+### Actions `main.yml` file
 
-The plan is to create a workflow that will perform the following automated jobs:
+The `workflows/main.yml` file defines a workflow that will perform the following automated jobs:
 
 * test: run the tests.
 * build: build and publish the container to a registry.
@@ -184,21 +186,129 @@ Maybe a script that can extract the version from `setup.py` is the way to go?
 
 ##### WIP: The deploy action 
 
-[Tutorial](https://nicwortel.nl/blog/2022/continuous-deployment-to-kubernetes-with-github-actions)
+This section was implemented mainly following the [Tutorial](https://nicwortel.nl/blog/2022/continuous-deployment-to-kubernetes-with-github-actions).
+Since the tutorial was created before the latest version of kubernetes, the step where the token for the service account is retrieved changed, and it was updated accordingly.
 
 Before creating the deploy action we need to do additional configurations:
 
 * The kubernetes cluster needs credentials to access the registry and pull the images.
+* Configure the Kubernetes context to execute commands in the cluster.
 * Create kubernetes a namespace, deployment, service and ingress yml files.
 
-###### Kubernetes' authentication to the registry
+###### Kubernetes' authentication and registry access
+
+***NOTE***: All the commands must be run from a terminal where you have access to a Kubernetes Cluster and `kubectl` is installed and properly configured.
+
+Create a `secret` to be able to access the package registry from GitHub.
+Assuming that a GitHub access token was created, fill the missing information and run the following command. A namespace can be defined as a scope, and you can set any name you want i.e. `github` (more details about namespaces can be found in further steps).
+
+```commandline
+kubectl create secret docker-registry github-container-registry --namespace=<namespace> --docker-server=ghcr.io --docker-username=<github-username> --docker-password=<token>
+```
+
+Alternatively, it can be configured with the [kubeconfig-approach](https://github.com/marketplace/actions/kubernetes-set-context#kubeconfig-approach).
+Create a secret in your GitHub project settings under `Settings -> Secrets and variables -> Actions`, name it `KUBERNETES_CONFIFG`.
+To obtain the `config` file contents run:
+
+```commandline
+kubectl config view --flatten=true > config
+```
+
+The command will create a file, just copy and paste the content.
+The secret will be used during the deploy action configuration to set the Kubernetes context.
+
+***WARNING***: The authentication with `serviceaccount` is not working, it was left as it is another way to authenticate, and it would be a shame to remove the configuration steps.
+
+A `serviceaccount` will be used to access the Kubernetes Cluster API from the GitHub action.
+Create a `serviceaccount`:
+```commandline
+kubectl create serviceaccount github-actions
+```
+
+Create a `clusterrole.yaml` file with the following contents. This defines a set of access rules (permissions) that the `serviceaccount` will have:
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: continuous-deployment
+rules:
+  - apiGroups:
+      - ''
+      - apps
+      - networking.k8s.io
+    resources:
+      - namespaces
+      - deployments
+      - replicasets
+      - ingresses
+      - services
+      - secrets
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+```
+
+To create the `clusterrole` and bind it to the `serviceaccount`:
+```commandline
+kubectl apply -f clusterrole.yaml
+kubectl create clusterrolebinding continuous-deployment --clusterrole=continuous-deployment --serviceaccount=default:github-actions
+```
+
+It is necessary to obtain a token for service account, since the newest version of kubernetes doesn't create the secret automatically anymore, it has to be created manually following: [create-token](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#create-token).
+Create the file `secret.yaml` specifying the `service-account.name`, the value is the name of the `serviceaccount` that we created in previous steps.
+```yaml
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/service-account-token
+metadata:
+  name: github-token-secret
+  annotations:
+    kubernetes.io/service-account.name: github-actions 
+```
+
+Create the secret:
+```commandline
+kubectl create -f secret.yaml
+```
+
+Create a secret in your project settings under `Settings -> Secrets and variables -> Actions`, name it `KUBERNETES_SECRET` and set the token as the value. This secret will be used later in the deploy action.
+Obtain the token:
+```commandline
+kubectl get secret github-token-secret -o=jsonpath="{.data.token}" | base64 -D -i -
+```
+
+You will also need the server url:
+```commandline
+kubectl config view --minify -o 'jsonpath={.clusters[0].cluster.server}'
+```
+
+Optionally, you can save it as a secret in your GitHub project too i.e. `KUBERNETES_SERVER`. The string or the secret will be used later in the deploy action.
+
+###### Known issue
 
 
 
-###### Kubernetes' yml files
+###### Kubernetes' yml file
 
+The `k8s/deployment-template.yml` file contains:
 
+* [namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/).
+* [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/).
+* [service](https://kubernetes.io/docs/concepts/services-networking/service/).
+* [ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/).
+
+Many values were defined as environment variables with the purpose of re-usability.
 
 ###### Deploy action
 
+We need the [azure/k8s-set-context@v2](https://github.com/Azure/k8s-set-context) action to define the context and allow the deploy action to use the Kubernetes Cluster API.
 
+As we have environment variables in the `deployment-template.yml` file, it is not valid. To define the environment variables [envsubst](https://github.com/marketplace/actions/simple-envsubst) was used.
+
+As a future improvement, it would be nice to give it a try to the [azure k8s-deploy action](https://github.com/Azure/k8s-deploy).
