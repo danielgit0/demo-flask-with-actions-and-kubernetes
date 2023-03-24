@@ -77,7 +77,7 @@ venv/bin/flask --app flaskr run
    1. The run configurations are included in the repository.
    2. **WARNING**: Do not modify the run configurations.
 
-#### What about other IDEs
+#### What about other IDEs?
 
 Make sure to create the virtual env and install the dependencies of the project.
 
@@ -151,7 +151,7 @@ Could happen when you run the command `./config.sh --url...` to start configurin
 RUNNER_ALLOW_RUNASROOT="1" ./config.sh --url...
 ```
 
-### Actions yml file
+### Actions `main.yml` file
 
 The `workflows/main.yml` file defines a workflow that will perform the following automated jobs:
 

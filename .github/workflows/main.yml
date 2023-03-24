@@ -44,3 +44,38 @@ jobs:
           platforms: ${{ matrix.platforms }}
           push: true
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
+  deploy:
+    name: Deploy
+    needs: [ test, build ]
+    runs-on: self-hosted
+    steps:
+      - name: Set the Kubernetes context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBERNETES_CONFIG }}
+          context: default
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Render Deployment YML
+        uses: nowactions/envsubst@v1
+        with:
+          input: ./k8s/deployment-template.yml
+          output: ./deployment.yml
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:latest
+          REPLICAS: 1
+          NAMESPACE: github
+          SERVICE_NAME: flask-demo-api
+      - name: Deploy to the Kubernetes cluster
+        run: |
+          kubectl apply -f ./deployment.yml
+          kubectl -n github rollout restart deployment flask-demo-api
+      #- name: Deploy to the Kubernetes cluster
+      #  uses: azure/k8s-deploy@v1
+      #  with:
+      #    namespace: default
+      #    manifests: |
+      #      ./deployment.yml
+      #    images: |
+      #      ghcr.io/${{ github.repository }}:latest
