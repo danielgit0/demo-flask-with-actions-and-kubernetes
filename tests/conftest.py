@@ -4,23 +4,23 @@ from flaskr import create_app
 
 @pytest.fixture()
 def app():
-    app = create_app()
-    app.config.update({
+    test_app = create_app()
+    test_app.config.update({
         "TESTING": True,
     })
 
     # other setup can go here
 
-    yield app
+    yield test_app
 
     # clean up / reset resources here
 
 
 @pytest.fixture()
-def client(app):
+def client(app):  # pylint: disable=redefined-outer-name
     return app.test_client()
 
 
 @pytest.fixture()
-def runner(app):
+def runner(app):  # pylint: disable=redefined-outer-name
     return app.test_cli_runner()

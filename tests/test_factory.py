@@ -1,4 +1,3 @@
-import pytest
 from flaskr import create_app
 
 

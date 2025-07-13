@@ -1,0 +1,7 @@
+---
+extends: default
+
+rules:
+  line-length:
+    max: 120  # ← Increase this to your desired limit
+    level: warning  # or "error"

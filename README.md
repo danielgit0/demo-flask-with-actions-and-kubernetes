@@ -11,7 +11,7 @@ Demo on how to use GitHub actions to deploy a python API with Flask.
 
 ## Flask API
 
-No views were created as the intention is to just create the backend. 
+No views were created as the intention is to just create the backend.
 The API was created using flask, following the official documentation, the specific sections that were used and adapted are the following:
 * [Project structure](https://flask.palletsprojects.com/en/2.2.x/tutorial/layout/)
 * [Testing documentation](https://flask.palletsprojects.com/en/2.2.x/testing/)
@@ -34,10 +34,10 @@ The API is deployed on a Kubernetes cluster. There is no certificate or domain f
    your-ip-here  github-flask-demo-api.com
    ```
 4. Save it.
-5. In a browser go to: `https://github-flask-demo-api.com`. A browser is the fastest way as it is just a demo API but more appropriate tools are: 
+5. In a browser go to: `https://github-flask-demo-api.com`. A browser is the fastest way as it is just a demo API but more appropriate tools are:
    1. `curl`.
-   2. [Postman](https://www.postman.com/downloads/). 
-6. Depending on your browser, you will get a certificate error that won't let you open the   
+   2. [Postman](https://www.postman.com/downloads/).
+6. Depending on your browser, you will get a certificate error that won't let you open the
 
 ### How to start the app?
 
@@ -67,8 +67,8 @@ venv/bin/flask --app flaskr run
 
 #### PyCharm
 
-1. Go to `Preferences -> Project:demo-flask-with-actions-and-kubernetes -> Python Interpreter` 
-2. Create a new interpreter at the root of the project. 
+1. Go to `Preferences -> Project:demo-flask-with-actions-and-kubernetes -> Python Interpreter`
+2. Create a new interpreter at the root of the project.
    1. The root of the current project and the new options are normally the default.
    2. This will create the virtual environment for your local project.
 3. Open the Terminal from PyCharm.
@@ -146,7 +146,7 @@ To use the runner, use `runs-on: self-hosted` in the yaml file where the actions
 
 ##### Issues
 ###### Message "Must not run with sudo"
-Could happen when you run the command `./config.sh --url...` to start configuring the runner. It is necessary to set the environment variable `RUNNER_ALLOW_RUNASROOT` when you execute it. 
+Could happen when you run the command `./config.sh --url...` to start configuring the runner. It is necessary to set the environment variable `RUNNER_ALLOW_RUNASROOT` when you execute it.
 ```commandline
 RUNNER_ALLOW_RUNASROOT="1" ./config.sh --url...
 ```
@@ -171,9 +171,9 @@ Additional documentation for Python can be found [here](https://docs.github.com/
 
 * It was created based on [Working with the GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). There it is defined how to authenticate against the registry in an action, create images, push images and additional required configurations.
 * In addition, this [tutorial](https://nicwortel.nl/blog/2022/continuous-deployment-to-kubernetes-with-github-actions) was used for additional set up of the action.
-* About the use of variables with [contexts](https://docs.github.com/en/actions/learn-github-actions/contexts#env-context). 
-* When using a GitHub default environment variable in a non script context i.e. `GITHUB_REPOSITORY` it should be used as `${{ github.repository }}`. 
-* It is necessary to ensure that in `Settings -> Actions -> General` under `Work permissions` sections the `Read and write permissions` is enabled to be able to push images to the registry. 
+* About the use of variables with [contexts](https://docs.github.com/en/actions/learn-github-actions/contexts#env-context).
+* When using a GitHub default environment variable in a non script context i.e. `GITHUB_REPOSITORY` it should be used as `${{ github.repository }}`.
+* It is necessary to ensure that in `Settings -> Actions -> General` under `Work permissions` sections the `Read and write permissions` is enabled to be able to push images to the registry.
 
 ###### Known issues
 

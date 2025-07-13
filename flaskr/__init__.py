@@ -2,6 +2,8 @@ import os
 
 from flask import Flask
 
+from . import user
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -28,7 +30,6 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!'
 
-    from . import user
     app.register_blueprint(user.bp)
     app.add_url_rule('/', endpoint='index')
 
